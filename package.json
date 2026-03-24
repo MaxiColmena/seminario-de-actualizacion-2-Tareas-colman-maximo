@@ -1,0 +1,25 @@
+{
+  "name": "seminario-de-actualizacion-2-tareas-colman-maximo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node ServidorWeb/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxiColmena/seminario-de-actualizacion-2-Tareas-colman-maximo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaxiColmena/seminario-de-actualizacion-2-Tareas-colman-maximo/issues"
+  },
+  "homepage": "https://github.com/MaxiColmena/seminario-de-actualizacion-2-Tareas-colman-maximo#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1",
+    "sequelize": "^6.37.8"
+  }
+}
