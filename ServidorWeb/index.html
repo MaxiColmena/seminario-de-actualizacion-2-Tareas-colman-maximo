@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga de Alumnos - Persistencia Local</title>
+
+    <!-- Fuente moderna de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Propiedades CSS personalizadas para esquema de colores y dimensiones de diseño */
+        :root {
+            --bg-main: #f8f9fa;           /* Fondo principal claro */
+            --bg-card: rgba(255,255,255,0.9); /* Fondo blanco de las tarjetas */
+            --border-card: rgba(0,0,0,0.1);
+            --accent: #007bff;            /* Color de acento azul */
+            --accent-hover: #0056b3;      /* Azul al pasar el mouse */
+            --danger: #dc3545;            /* Color para acciones destructivas rojo */
+            --danger-hover: #c82333;
+            --text: #212529;             /* Texto principal oscuro */
+            --text-muted: #6c757d;       /* Texto secundario gris */
+            --radius: 14px;              /* Radio de bordes redondeados */
+        }
+
+        /* Estilos generales para reset y diseño del cuerpo */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            /* Fondo con gradiente sutil claro */
+            background-image:
+                linear-gradient(135deg, rgba(0,123,255,0.05), rgba(220,53,69,0.05));
+        }
+
+        /* Contenedor principal con ancho máximo */
+        .container {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        /* Estilos para el encabezado principal con efecto de texto degradado */
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 28px;
+            background: linear-gradient(135deg, var(--accent), var(--danger));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        /* Estilos de tarjetas con efecto glassmorphism y animación al pasar el mouse */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); }
+
+        /* Estilos para inputs y etiquetas del formulario */
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.05);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--accent); }
+
+        /* Estilos para botones y grupos de botones */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:active { transform: scale(0.97); }
+
+        /* Botón principal (agregar alumno) */
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        /* Botón de peligro (borrar todo) */
+        .btn-danger {
+            background: rgba(220,53,69,0.15);
+            color: var(--danger);
+            border: 1px solid rgba(220,53,69,0.2);
+        }
+        .btn-danger:hover { background: rgba(220,53,69,0.25); }
+
+        /* Estilos para la tabla de lista de alumnos */
+        h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        td {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        /* Resaltar la fila al pasar el mouse */
+        tr:hover td { background: rgba(0,0,0,0.03); }
+
+        /* Estilos para la sección de estadísticas */
+        .stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 16px 12px;
+            background: rgba(0,123,255,0.08);
+            border: 1px solid rgba(0,123,255,0.15);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Estilos para el mensaje de estado vacío */
+        .empty-msg {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Animación de aparición para nuevas tarjetas */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .card { animation: fadeIn 0.3s ease; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Título principal -->
+        <h2> Registro de Alumnos</h2>
+
+        <!-- Formulario para cargar nuevos alumnos -->
+        <div class="card">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" placeholder="Ej: Juan Pérez">
+
+            <label for="edad">Edad</label>
+            <input type="number" id="edad" placeholder="Ej: 20">
+
+            <label for="nota">Nota</label>
+            <input type="number" id="nota" placeholder="Ej: 8">
+
+            <!-- Botones de acción -->
+            <div class="btn-group">
+                <button class="btn-primary" onclick="agregarAlumno()">Cargar Alumno</button>
+                <button class="btn-danger" onclick="borrarTodo()">Limpiar Todo</button>
+            </div>
+        </div>
+
+        <!-- Contenedor para la tabla de alumnos generada dinámicamente -->
+        <div id="contenedor-tabla"></div>
+
+        <!-- Contenedor para las estadísticas generadas dinámicamente -->
+        <div id="estadisticas"></div>
+    </div>
+
+    <script>
+        // Variable global para almacenar la lista de alumnos
+        // Este array contiene los datos de alumnos cargados desde el servidor al cargar la página
+        let alumnos = [];
+
+        // Función para cargar datos iniciales desde el servidor
+        // Obtiene datos de alumnos usando cookies para identificar al usuario
+        cargarDesdeServidor();
+
+        async function cargarDesdeServidor() {
+            // Envía solicitud GET al servidor para obtener datos de alumnos
+            const respuesta = await fetch('/api/alumnos');
+            // Convierte la respuesta JSON en un array de JavaScript
+            alumnos = await respuesta.json();
+            // Actualiza la interfaz de usuario con los datos cargados
+            actualizarInterfaz();
+        }
+
+        // Función para agregar un nuevo alumno
+        // Lee los valores del formulario, los valida y envía solicitud POST al servidor
+        async function agregarAlumno() {
+            // Obtiene y recorta los valores de entrada de los campos del formulario
+            const nombre = document.getElementById('nombre').value.trim();
+            const edad   = parseInt(document.getElementById('edad').value);
+            const nota   = parseInt(document.getElementById('nota').value);
+
+            // Valida que todos los campos estén llenos correctamente
+            if (!nombre || isNaN(edad) || isNaN(nota)) {
+                alert('Por favor, completá todos los campos correctamente.');
+                return;
+            }
+
+            // Envía solicitud POST al servidor con los datos del nuevo alumno
+            const respuesta = await fetch('/api/alumnos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, edad, nota })
+            });
+
+            // El servidor devuelve el array de alumnos actualizado
+            alumnos = await respuesta.json();
+
+            // Limpia el formulario y actualiza la interfaz
+            limpiarFormulario();
+            actualizarInterfaz();
+        }
+
+        // Función para actualizar la interfaz de usuario
+        // Genera la tabla de alumnos ordenada por nota y calcula estadísticas
+        // Se ejecuta cada vez que cambian los datos
+        // (Esta función solo modifica el DOM, no interactúa con el servidor)
+        function actualizarInterfaz() {
+            const contenedor = document.getElementById('contenedor-tabla');
+            const statsDiv   = document.getElementById('estadisticas');
+
+            // Si no hay alumnos registrados, muestra un mensaje de estado vacío
+            if (alumnos.length === 0) {
+                contenedor.innerHTML = '<div class="card"><p class="empty-msg">No hay alumnos registrados todavía.</p></div>';
+                statsDiv.innerHTML = '';
+                return;
+            }
+
+            // Crea una copia del array y la ordena de mayor a menor nota
+            const ordenados = [...alumnos].sort((a, b) => b[2] - a[2]);
+
+            // Genera el HTML de la tabla con los alumnos ordenados por nota
+            contenedor.innerHTML = `
+                <div class="card">
+                    <h3>Lista ordenada por nota</h3>
+                    <table>
+                        <tr><th>Nombre</th><th>Edad</th><th>Nota</th></tr>
+                        ${ordenados.map(([n, e, no]) =>
+                            `<tr><td>${n}</td><td>${e}</td><td>${no}</td></tr>`
+                        ).join('')}
+                    </table>
+                </div>`;
+
+            // Calcula la suma total y el promedio de todas las notas de los alumnos
+            const suma     = alumnos.reduce((acc, a) => acc + a[2], 0);
+            const promedio = (suma / alumnos.length).toFixed(2);
+
+            // Renderiza las estadísticas en la interfaz
+            statsDiv.innerHTML = `
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${alumnos.length}</div>
+                        <div class="stat-label">Alumnos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${suma}</div>
+                        <div class="stat-label">Suma Notas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${promedio}</div>
+                        <div class="stat-label">Promedio</div>
+                    </div>
+                </div>`;
+        }
+
+        // Función para limpiar los campos del formulario
+        // Resetea los valores de los inputs después de agregar un alumno
+        function limpiarFormulario() {
+            document.getElementById('nombre').value = '';
+            document.getElementById('edad').value   = '';
+            document.getElementById('nota').value   = '';
+        }
+
+        // Función para eliminar todos los alumnos
+        // Envía solicitud DELETE al servidor para borrar todos los datos del usuario
+        async function borrarTodo() {
+            if (!confirm('¿Seguro que querés borrar todos los datos?')) return;
+
+            // Solicita al servidor que elimine todos los datos del usuario
+            const respuesta = await fetch('/api/alumnos', { method: 'DELETE' });
+            // El servidor devuelve un array vacío
+            alumnos = await respuesta.json();
+            // Actualiza la interfaz para mostrar el estado vacío
+            actualizarInterfaz();
+        }
+    </script>
+</body>
+</html>
